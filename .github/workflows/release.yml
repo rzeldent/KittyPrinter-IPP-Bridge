@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environment: [esp32s3-n16r8, esp32s3-fh4r2]
+        environment: [esp32s3-n16r8]
     env:
       RELEASE_TAG: ${{ inputs.tag }}
     steps:
