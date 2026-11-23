@@ -39,13 +39,13 @@ namespace raster
             bool trimBlankRows = true;     ///< Remove leading/trailing white rows of every page
             bool dither = true;            ///< Build-selected error diffusion (false = threshold)
             uint32_t pageGapRows = 24;     ///< Blank rows between pages (3 mm)
-            size_t maxOutputBytes = 160 * 1024; ///< Output budget (rows * 48 bytes)
+            size_t maxOutputBytes = 160 * 1024; ///< Output size and capacity budget (including page gaps)
             uint32_t maxPages = 50;        ///< Upper bound on pages per job
         };
 
         explicit PwgJobConverter(const Options &options);
 
-        /** Feed document bytes. @return false once the document is invalid or over budget. */
+        /** Feed document bytes. @return false on invalid input, budget or allocation failure. */
         bool feed(const uint8_t *data, size_t len);
 
         /** Signal end of document. @return true if at least one complete page was converted. */
@@ -60,8 +60,11 @@ namespace raster
         std::string error() const { return error_.empty() ? decoder_.error() : error_; }
         /** True when the failure is due to the byte budget (maps to "request entity too large"). */
         bool overBudget() const { return overBudget_; }
+        bool outOfMemory() const { return outOfMemory_; }
 
     private:
+        bool ensureRows(uint32_t rows);
+
         Options opt_;
         PwgRasterDecoder decoder_;
         MonoRasterizer rasterizer_;
@@ -70,6 +73,7 @@ namespace raster
         std::vector<uint8_t> gray_;
         std::string error_;
         bool overBudget_ = false;
+        bool outOfMemory_ = false;
     };
 
 } // namespace raster

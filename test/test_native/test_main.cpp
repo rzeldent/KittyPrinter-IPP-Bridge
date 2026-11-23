@@ -9,7 +9,9 @@
 #include <unity.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
+#include <new>
 #include <string>
 #include <vector>
 
@@ -20,6 +22,26 @@
 #include "PwgJobConverter.h"
 #include "PwgRasterDecoder.h"
 #include "TextRenderer.h"
+
+static bool failNextAllocation = false;
+
+void *operator new(size_t size)
+{
+    if (failNextAllocation)
+    {
+        failNextAllocation = false;
+        throw std::bad_alloc();
+    }
+    if (auto *p = std::malloc(size ? size : 1))
+        return p;
+    throw std::bad_alloc();
+}
+
+void *operator new[](size_t size) { return ::operator new(size); }
+void operator delete(void *p) noexcept { std::free(p); }
+void operator delete[](void *p) noexcept { std::free(p); }
+void operator delete(void *p, size_t) noexcept { std::free(p); }
+void operator delete[](void *p, size_t) noexcept { std::free(p); }
 
 void setUp() {}
 void tearDown() {}
@@ -570,6 +592,89 @@ static void test_converter_budget_and_errors()
     TEST_ASSERT_FALSE(empty.error().empty());
 }
 
+static void test_converter_exact_budget_and_capacity()
+{
+    raster::PwgJobConverter::Options opt;
+    opt.maxOutputBytes = 48 * 10 + 1;
+    raster::PwgJobConverter conv(opt);
+    auto doc = blackPages(1, 384, 10);
+    TEST_ASSERT_TRUE(conv.feed(doc.data(), doc.size()));
+    TEST_ASSERT_TRUE(conv.finish());
+    TEST_ASSERT_EQUAL(10, conv.bitmap().height);
+    TEST_ASSERT_EQUAL(480, conv.bitmap().data.size());
+    TEST_ASSERT_TRUE(conv.bitmap().data.capacity() <= opt.maxOutputBytes);
+
+    raster::PwgJobConverter larger(opt);
+    doc = blackPages(1, 384, 11);
+    TEST_ASSERT_FALSE(larger.feed(doc.data(), doc.size()));
+    TEST_ASSERT_TRUE(larger.overBudget());
+    TEST_ASSERT_EQUAL(480, larger.bitmap().data.size());
+    TEST_ASSERT_TRUE(larger.bitmap().data.capacity() <= opt.maxOutputBytes);
+}
+
+static void test_converter_page_gap_budget()
+{
+    raster::PwgJobConverter::Options opt;
+    opt.pageGapRows = 3;
+    opt.maxOutputBytes = 48 * 5;
+    auto doc = blackPages(2, 384, 1);
+    raster::PwgJobConverter exact(opt);
+    TEST_ASSERT_TRUE(exact.feed(doc.data(), doc.size()));
+    TEST_ASSERT_TRUE(exact.finish());
+    TEST_ASSERT_EQUAL(5, exact.bitmap().height);
+    TEST_ASSERT_EQUAL_HEX8(0, exact.bitmap().row(1)[0]);
+
+    opt.pageGapRows = 5;
+    raster::PwgJobConverter over(opt);
+    TEST_ASSERT_FALSE(over.feed(doc.data(), doc.size()));
+    TEST_ASSERT_TRUE(over.overBudget());
+    TEST_ASSERT_EQUAL(1, over.bitmap().height);
+    TEST_ASSERT_EQUAL(48, over.bitmap().data.size());
+    TEST_ASSERT_FALSE(over.finish());
+    TEST_ASSERT_EQUAL_STRING("document exceeds memory budget", over.error().c_str());
+}
+
+static void test_converter_allocation_failure()
+{
+    auto doc = blackPages(1, 384, 10);
+    const auto headerBytes = 4 + pwgHeader(384, 10, 8, 8, raster::CSPACE_SW).size();
+    // Fail either the source-line allocation or the first output-buffer allocation.
+    for (const auto prefix : {size_t{4}, headerBytes})
+    {
+        raster::PwgJobConverter conv(raster::PwgJobConverter::Options{});
+        TEST_ASSERT_TRUE(conv.feed(doc.data(), prefix));
+        failNextAllocation = true;
+        const auto ok = conv.feed(doc.data() + prefix, doc.size() - prefix);
+        const auto injected = !failNextAllocation;
+        failNextAllocation = false;
+        TEST_ASSERT_TRUE(injected);
+        TEST_ASSERT_FALSE(ok);
+        TEST_ASSERT_TRUE(conv.failed());
+        TEST_ASSERT_TRUE(conv.outOfMemory());
+        TEST_ASSERT_FALSE(conv.overBudget());
+        TEST_ASSERT_EQUAL_STRING("out of memory", conv.error().c_str());
+        TEST_ASSERT_FALSE(conv.finish());
+        TEST_ASSERT_FALSE(conv.feed(doc.data(), doc.size()));
+    }
+
+    // Keep one row in the buffer, then fail its growth while decoding repeated rows.
+    doc[headerBytes] = 0;
+    raster::PwgJobConverter growing(raster::PwgJobConverter::Options{});
+    TEST_ASSERT_TRUE(growing.feed(doc.data(), doc.size()));
+    TEST_ASSERT_EQUAL(1, growing.bitmap().height);
+    const uint8_t remaining[] = {8, 127, 0, 127, 0, 127, 0};
+    failNextAllocation = true;
+    const auto ok = growing.feed(remaining, sizeof(remaining));
+    const auto injected = !failNextAllocation;
+    failNextAllocation = false;
+    TEST_ASSERT_TRUE(injected);
+    TEST_ASSERT_FALSE(ok);
+    TEST_ASSERT_TRUE(growing.outOfMemory());
+    TEST_ASSERT_EQUAL(1, growing.bitmap().height);
+    TEST_ASSERT_EQUAL(48, growing.bitmap().data.size());
+    TEST_ASSERT_EQUAL_HEX8(0xFF, growing.bitmap().row(0)[0]);
+}
+
 static void test_identify_page()
 {
     auto bmp = raster::buildIdentifyPage("Desk Label Printer", "aa:bb:cc:dd:ee:ff");
@@ -612,6 +717,9 @@ int main(int, char **)
     RUN_TEST(test_rasterizer_dither_narrow_and_threshold);
     RUN_TEST(test_converter_multi_page);
     RUN_TEST(test_converter_budget_and_errors);
+    RUN_TEST(test_converter_exact_budget_and_capacity);
+    RUN_TEST(test_converter_page_gap_budget);
+    RUN_TEST(test_converter_allocation_failure);
     RUN_TEST(test_identify_page);
     return UNITY_END();
 }

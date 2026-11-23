@@ -1153,6 +1153,9 @@ uint16_t IppServer::opPrintJob(const ipp::Request &req, const PrinterRecord &pri
     if (!ok)
     {
         message = converter.error();
+        LOG_W(TAG, "Raster upload for %s rejected: %s", printer.id.c_str(), message.c_str());
+        if (converter.outOfMemory())
+            return ipp::SERVER_ERROR_BUSY;
         return converter.overBudget() ? ipp::CLIENT_ERROR_REQUEST_ENTITY_TOO_LARGE
                                       : ipp::CLIENT_ERROR_DOCUMENT_FORMAT_ERROR;
     }

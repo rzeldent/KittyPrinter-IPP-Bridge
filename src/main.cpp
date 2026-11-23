@@ -60,7 +60,9 @@ namespace
     constexpr uint32_t kHeapLogPeriodMs = 300000;     ///< Periodic heap report
     constexpr uint32_t kLowHeapBytes = 16 * 1024;     ///< Below this the bridge is considered starving
     constexpr uint8_t kLowHeapRestartChecks = 6;      ///< Consecutive low readings before a restart (30 s)
+    constexpr size_t kJobBudgetInternal = 160 * 1024;
     constexpr size_t kJobBudgetPsram = CATBRIDGE_JOB_BUDGET_BYTES;
+    size_t gJobBudgetBytes = kJobBudgetInternal;
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -94,7 +96,7 @@ static JobQueue::Settings jobSettings(const BridgeConfig &b)
     JobQueue::Settings s;
     s.queueSize = b.queueSize;
     s.maxRetries = b.maxRetries;
-    s.maxQueuedBytes = kJobBudgetPsram;
+    s.maxQueuedBytes = gJobBudgetBytes;
     s.keepAlive = b.keepAlive;
     s.keepAliveIntervalSec = b.keepAliveIntervalSec;
     return s;
@@ -287,11 +289,14 @@ void setup()
           static_cast<int>(esp_reset_reason()), static_cast<unsigned>(ESP.getFreeHeap()),
           static_cast<unsigned>(ESP.getPsramSize()));
 
-    if (!psramFound() || ESP.getPsramSize() == 0)
+    if (psramFound() && ESP.getPsramSize() > 0)
     {
-        LOG_E(TAG, "PSRAM is required. Check the board and PSRAM configuration; startup halted");
-        for (;;)
-            delay(1000);
+        gJobBudgetBytes = kJobBudgetPsram;
+    }
+    else
+    {
+        LOG_W(TAG, "PSRAM unavailable; using internal RAM with a %u KiB job budget",
+              static_cast<unsigned>(kJobBudgetInternal / 1024));
     }
 
     watchdog::begin(kWatchdogTimeoutSec);
@@ -324,7 +329,7 @@ void setup()
     // ---- IPP -----------------------------------------------------------------
     IppServer::Settings ipp;
     ipp.hostname = gHostname;
-    ipp.maxJobBytes = kJobBudgetPsram;
+    ipp.maxJobBytes = gJobBudgetBytes;
     if (!gIpp.begin(&gRegistry, &gJobs, &gConfig, ipp) || !gIpp.startTask())
         LOG_E(TAG, "IPP server failed to start");
 

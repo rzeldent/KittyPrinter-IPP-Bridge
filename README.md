@@ -108,7 +108,7 @@ the complete bridge reliably.
 | **ESP32-S3FH4R2 with quad PSRAM** | Build target `esp32s3-fh4r2`: 4 MB flash, 2 MB PSRAM, and reduced job-memory limits. Hardware validation is still required. |
 | **ESP32-C3** | Not enough memory for this project's combined networking, BLE, and printing workload. It has Wi-Fi and BLE, but is not a supported target. |
 | **ESP32-S2** | No Bluetooth hardware, so it cannot communicate with the BLE printers, even if the board has PSRAM. |
-| **ESP32-S3 without PSRAM** | Not supported. The firmware checks for PSRAM at startup and stops if it is unavailable. |
+| **ESP32-S3 without PSRAM** | Can run using internal RAM, with a reduced 160 KiB job-memory budget. Hardware validation is recommended. |
 
 PSRAM provides space for large job and image buffers; it does not replace all
 internal RAM needed by Wi-Fi, BLE, and task stacks. The N16R8 build limits each
@@ -116,7 +116,15 @@ converted job bitmap and the total queued/active job payloads to 2 MiB each.
 The FH4R2 build reduces both limits to 512 KiB, leaving room for raster
 conversion and other allocations in its smaller PSRAM. These limits apply to
 converted output, not the size of the uploaded raster document. Extra flash
-storage is not a substitute for RAM.
+storage is not a substitute for RAM. If PSRAM is not detected, the firmware
+uses the normal internal heap and limits the converted-job and queued-payload
+budgets to 160 KiB.
+
+Bitmap buffer growth and inter-page gaps respect the converted-job budget.
+If a buffer allocation fails (for example, because the internal heap is
+fragmented or exhausted), the upload is rejected with an IPP busy response
+and a serial/log warning instead of aborting the device. The configured budget
+is an upper bound, not a guarantee that enough contiguous RAM is available.
 
 Check the actual module specification before buying: not every ESP32-S3 board
 includes PSRAM. Select the matching environment: N16R8 uses **octal PSRAM and
@@ -138,10 +146,9 @@ pio run -e esp32s3-fh4r2 -t upload
 ```
 
 The upload command builds the firmware first. The default environment is
-`esp32s3-n16r8`; boards without PSRAM are not supported. Startup checks that
-PSRAM is detected and halts with a serial error before starting Wi-Fi, BLE or
-printing services if it is unavailable. If PlatformIO cannot find the board,
-specify its serial port with `--upload-port`.
+`esp32s3-n16r8`. PSRAM is used when detected; otherwise the firmware continues
+with internal RAM and the reduced job-memory budget. If PlatformIO cannot find
+the board, specify its serial port with `--upload-port`.
 
 Every push runs a GitHub Actions build matrix for `esp32s3-n16r8` and
 `esp32s3-fh4r2`. Successful builds provide a separate artifact named after
