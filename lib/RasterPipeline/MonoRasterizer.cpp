@@ -23,7 +23,7 @@ namespace raster
         scaled_.assign(w, 0);
         errCur_.assign(w + 4, 0);
         errNext_.assign(w + 4, 0);
-#if CATBRIDGE_DITHER_ATKINSON
+#if KITTY_IPP_BRIDGE_DITHER_ATKINSON
         errAfterNext_.assign(w + 4, 0);
 #endif
         packed_.assign((w + 7) / 8, 0);
@@ -99,7 +99,7 @@ namespace raster
     {
         const int w = static_cast<int>(opt_.outWidth);
         const auto ltr = (dstY_ & 1u) == 0; // serpentine scan reduces directional artefacts
-#if CATBRIDGE_DITHER_ATKINSON
+#if KITTY_IPP_BRIDGE_DITHER_ATKINSON
         std::fill(errAfterNext_.begin(), errAfterNext_.end(), 0);
 #else
         std::fill(errNext_.begin(), errNext_.end(), 0);
@@ -124,7 +124,7 @@ namespace raster
                 const auto e = v - out;
                 const auto fwd = ltr ? x + 1 : x - 1;
                 const auto back = ltr ? x - 1 : x + 1;
-#if CATBRIDGE_DITHER_ATKINSON
+#if KITTY_IPP_BRIDGE_DITHER_ATKINSON
                 // Six neighbours receive 1/8 each; the remaining 1/4 is discarded.
                 const auto share = e / 8;
                 const auto fwd2 = ltr ? x + 2 : x - 2;
@@ -143,7 +143,7 @@ namespace raster
             }
         }
         errCur_.swap(errNext_);
-#if CATBRIDGE_DITHER_ATKINSON
+#if KITTY_IPP_BRIDGE_DITHER_ATKINSON
         errNext_.swap(errAfterNext_);
 #endif
         deliver(packed_.data(), blank);

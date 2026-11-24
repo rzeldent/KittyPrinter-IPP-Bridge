@@ -1,6 +1,6 @@
 /**
  * @file main.cpp
- * @brief KittyPrinter IPP Bridge - firmware entry point.
+ * @brief Kitty IPP Bridge - firmware entry point.
  *
  * Wires the subsystems together and starts the FreeRTOS tasks:
  *
@@ -37,14 +37,14 @@
 #include "Watchdog.h"
 #include "WebUI.h"
 
-#ifndef CATBRIDGE_VERSION
-#define CATBRIDGE_VERSION "dev"
+#ifndef KITTY_IPP_BRIDGE_VERSION
+#define KITTY_IPP_BRIDGE_VERSION "dev"
 #endif
-#ifndef CATBRIDGE_HOSTNAME
-#define CATBRIDGE_HOSTNAME "catbridge"
+#ifndef KITTY_IPP_BRIDGE_HOSTNAME
+#define KITTY_IPP_BRIDGE_HOSTNAME "kitty-ipp-bridge"
 #endif
-#ifndef CATBRIDGE_JOB_BUDGET_BYTES
-#define CATBRIDGE_JOB_BUDGET_BYTES (2 * 1024 * 1024)
+#ifndef KITTY_IPP_BRIDGE_JOB_BUDGET_BYTES
+#define KITTY_IPP_BRIDGE_JOB_BUDGET_BYTES (2 * 1024 * 1024)
 #endif
 
 static const char *TAG = "main";
@@ -61,7 +61,7 @@ namespace
     constexpr uint32_t kLowHeapBytes = 16 * 1024;     ///< Below this the bridge is considered starving
     constexpr uint8_t kLowHeapRestartChecks = 6;      ///< Consecutive low readings before a restart (30 s)
     constexpr size_t kJobBudgetInternal = 160 * 1024;
-    constexpr size_t kJobBudgetPsram = CATBRIDGE_JOB_BUDGET_BYTES;
+    constexpr size_t kJobBudgetPsram = KITTY_IPP_BRIDGE_JOB_BUDGET_BYTES;
     size_t gJobBudgetBytes = kJobBudgetInternal;
 } // namespace
 
@@ -77,7 +77,7 @@ static JobQueue gJobs;
 static IppServer gIpp;
 static WebUI gWeb;
 
-static std::string gHostname = CATBRIDGE_HOSTNAME;
+static std::string gHostname = KITTY_IPP_BRIDGE_HOSTNAME;
 
 // ---------------------------------------------------------------------------
 // Settings mapping
@@ -138,7 +138,7 @@ static void onWifiEvent(arduino_event_id_t event, arduino_event_info_t info)
 static void startAccessPoint(const NetworkConfig &net)
 {
     const std::string mac = WiFi.macAddress().c_str();
-    const auto ssid = "CatBridge-" + macutil::shortSuffix(mac);
+    const auto ssid = "KittyIPPBridge-" + macutil::shortSuffix(mac);
     WiFi.mode(net.ssid.empty() ? WIFI_AP : WIFI_AP_STA);
     WiFi.softAP(ssid.c_str(), net.apPassword.c_str());
     LOG_W("wifi", "Setup access point '%s' active, open http://%s/", ssid.c_str(),
@@ -148,7 +148,7 @@ static void startAccessPoint(const NetworkConfig &net)
 static void startWifi()
 {
     const auto net = gConfig.network();
-    gHostname = net.hostname.empty() ? CATBRIDGE_HOSTNAME : net.hostname;
+    gHostname = net.hostname.empty() ? KITTY_IPP_BRIDGE_HOSTNAME : net.hostname;
 
     WiFi.onEvent(onWifiEvent);
     WiFi.persistent(false);
@@ -285,7 +285,7 @@ void setup()
     log.addSink(&gSerialLog);
     log.addSink(&gRingLog);
 
-    LOG_I(TAG, "KittyPrinter IPP Bridge %s starting (reset reason %d, heap %u, psram %u)", CATBRIDGE_VERSION,
+    LOG_I(TAG, "Kitty IPP Bridge %s starting (reset reason %d, heap %u, psram %u)", KITTY_IPP_BRIDGE_VERSION,
           static_cast<int>(esp_reset_reason()), static_cast<unsigned>(ESP.getFreeHeap()),
           static_cast<unsigned>(ESP.getPsramSize()));
 
@@ -310,7 +310,7 @@ void setup()
     startWifi();
 
     // ---- BLE ---------------------------------------------------------------
-    NimBLEDevice::init("CatBridge");
+    NimBLEDevice::init("Kitty IPP Bridge");
     NimBLEDevice::setPower(9); // dBm, best range for sleeping printers
     NimBLEDevice::setMTU(247);
 

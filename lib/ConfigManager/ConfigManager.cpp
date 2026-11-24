@@ -9,8 +9,8 @@
 #include "Logging.h"
 #include "MacUtil.h"
 
-#ifndef CATBRIDGE_HOSTNAME
-#define CATBRIDGE_HOSTNAME "catbridge"
+#ifndef KITTY_IPP_BRIDGE_HOSTNAME
+#define KITTY_IPP_BRIDGE_HOSTNAME "kitty-ipp-bridge"
 #endif
 
 namespace
@@ -94,7 +94,7 @@ void ConfigManager::loadAll()
     Preferences p;
 
     network_ = NetworkConfig{};
-    network_.hostname = CATBRIDGE_HOSTNAME;
+    network_.hostname = KITTY_IPP_BRIDGE_HOSTNAME;
     if (p.begin(NS_NET, true))
     {
         network_.ssid = getString(p, "ssid", "");
@@ -103,14 +103,14 @@ void ConfigManager::loadAll()
         network_.apPassword = getString(p, "ap_pass", network_.apPassword);
         p.end();
     }
-#if defined(CATBRIDGE_WIFI_SSID)
+#if defined(KITTY_IPP_BRIDGE_WIFI_SSID)
     // Compile time credentials (platformio_override.ini) are used when nothing
     // has been configured through the Web UI yet.
     if (network_.ssid.empty())
     {
-        network_.ssid = CATBRIDGE_WIFI_SSID;
-#if defined(CATBRIDGE_WIFI_PASSWORD)
-        network_.password = CATBRIDGE_WIFI_PASSWORD;
+        network_.ssid = KITTY_IPP_BRIDGE_WIFI_SSID;
+#if defined(KITTY_IPP_BRIDGE_WIFI_PASSWORD)
+        network_.password = KITTY_IPP_BRIDGE_WIFI_PASSWORD;
 #endif
     }
 #endif

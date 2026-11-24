@@ -1,11 +1,11 @@
-# KittyPrinter IPP Bridge
+# Kitty IPP Bridge
 
 [![Build](https://github.com/rzeldent/kitty-ipp-bridge/actions/workflows/main.yml/badge.svg)](https://github.com/rzeldent/kitty-ipp-bridge/actions/workflows/main.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL_v3-blue.svg)](LICENSE)
 [![PlatformIO](https://img.shields.io/badge/PlatformIO-orange?logo=platformio&logoColor=white)](https://platformio.org/)
 [![ESP32](https://img.shields.io/badge/ESP32-S3-red?logo=espressif&logoColor=white)](https://www.espressif.com/en/products/socs/esp32-s3)
 
-KittyPrinter IPP Bridge runs on an ESP32 and connects compatible Bluetooth Low
+Kitty IPP Bridge runs on an ESP32 and connects compatible Bluetooth Low
 Energy (BLE) thermal printers to a Wi-Fi network. It discovers printers by
 their BLE service UUIDs and exposes them as IPP printers using mDNS/DNS-SD.
 The web dashboard shows discovered printers and print jobs and provides
@@ -60,9 +60,9 @@ Atkinson distributes one eighth of each pixel's quantization error to six
 neighbours across the current row and the next two rows, discarding the
 remaining quarter.
 
-The compile-time define `CATBRIDGE_DITHER_ATKINSON` selects the algorithm:
+The compile-time define `KITTY_IPP_BRIDGE_DITHER_ATKINSON` selects the algorithm:
 `1` uses Atkinson; `0` uses Floyd-Steinberg. Change the existing
-`-DCATBRIDGE_DITHER_ATKINSON=0` flag in `[esp32_common]`'s `build_flags` in
+`-DKITTY_IPP_BRIDGE_DITHER_ATKINSON=0` flag in `[esp32_common]`'s `build_flags` in
 [platformio.ini](platformio.ini) to `1` to enable Atkinson, then rebuild and
 upload. Without a build override, the raster library defaults to Atkinson.
 Atkinson uses one extra error-buffer row (about 0.8 KiB at 384 dots).
@@ -70,10 +70,10 @@ The raster pipeline's `dither = false` option still uses simple thresholding.
 
 ## Status dashboard
 
-Open [http://catbridge.local/](http://catbridge.local/) (or the bridge's IP
+Open [http://kitty-ipp-bridge.local/](http://kitty-ipp-bridge.local/) (or the bridge's IP
 address) to view the live status dashboard.
 
-![KittyPrinter IPP Bridge status dashboard](assets/images/status%20page.png)
+![Kitty IPP Bridge status dashboard](assets/images/status%20page.png)
 
 - **Status cards** show uptime, free heap, online and known printers, and
   successful or failed print jobs.
@@ -172,7 +172,7 @@ manually.
 ## Connect to Wi-Fi
 
 1. On first startup, connect your computer or phone to the setup Wi-Fi network
-   named `CatBridge-XXXX`. Its default password is `catbridge`.
+   named `KittyIPPBridge-XXXX`. Its default password is `kitty-ipp-bridge`.
 2. Open [http://192.168.4.1/](http://192.168.4.1/) in a browser. If the
    address differs, check the setup access point address in the serial log.
 3. Under **Network**, enter your Wi-Fi SSID and password. You can also change
@@ -180,7 +180,7 @@ manually.
 4. Click **Save**, then **Reboot** to apply the network settings. The settings
    are stored on the device.
 5. Reconnect your computer or phone to your usual Wi-Fi network. Open
-   [http://catbridge.local/](http://catbridge.local/) (or use your chosen
+   [http://kitty-ipp-bridge.local/](http://kitty-ipp-bridge.local/) (or use your chosen
    hostname) or use the IP address found below.
 
 If the bridge cannot connect within about 20 seconds, it starts the setup
@@ -205,7 +205,7 @@ pio device monitor -b 115200
 Restart the board if necessary and look for `Connected, IP ...` in the log.
 The setup access point's name and address are also logged. Alternatively,
 check your router's connected-device list for the bridge's hostname
-(`catbridge` by default).
+(`kitty-ipp-bridge` by default).
 
 ## Add a printer
 
@@ -217,7 +217,7 @@ check your router's connected-device list for the bridge's hostname
 3. Add the discovered IPP printer using your operating system's printer
    settings. Where mDNS/DNS-SD discovery is available, the printer can appear
    automatically; otherwise use the **IPP URI** shown in the dashboard. The
-   URI has the form `ipp://catbridge.local:631/ipp/<printer-id>`. Replace the
+   URI has the form `ipp://kitty-ipp-bridge.local:631/ipp/<printer-id>`. Replace the
    hostname with the bridge IP if `.local` name resolution is unavailable.
 
 ### Windows 11

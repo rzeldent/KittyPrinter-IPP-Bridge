@@ -4,8 +4,8 @@
  *
  * Endpoints (port 631):
  *
- *   ipp://catbridge.local/ipp/{printer-id}   one per registry entry (id = MAC without ':')
- *   ipp://catbridge.local/ipp/print          alias for the first known printer
+ *   ipp://kitty-ipp-bridge.local/ipp/{printer-id}   one per registry entry (id = MAC without ':')
+ *   ipp://kitty-ipp-bridge.local/ipp/print          alias for the first known printer
  *
  * Supported operations:
  *
@@ -53,7 +53,7 @@ public:
     {
         uint16_t port = 631;
         uint16_t httpPort = 80;          ///< Web UI port (adminurl / printer-more-info)
-        std::string hostname = "catbridge";
+        std::string hostname = "kitty-ipp-bridge";
         size_t maxJobBytes = 160 * 1024; ///< Converted bitmap budget per job
         uint32_t ioTimeoutMs = 15000;    ///< Socket inactivity timeout while receiving a request
         uint32_t keepAliveMs = 3000;     ///< Idle time before an idle keep-alive connection is closed

@@ -583,7 +583,7 @@ bool JobQueue::execute(PrintJob &job, std::string &error, bool &retryable)
     case JobType::TestPage:
     {
         std::vector<std::string> lines = {
-            "CatBridge test page",
+            "Kitty IPP Bridge test page",
             record.displayName(),
             record.mac,
             "Profile: " + record.profileName,

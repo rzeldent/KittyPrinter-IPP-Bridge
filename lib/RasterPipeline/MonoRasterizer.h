@@ -27,12 +27,12 @@
 #include <functional>
 #include <vector>
 
-#ifndef CATBRIDGE_DITHER_ATKINSON
-#define CATBRIDGE_DITHER_ATKINSON 1
+#ifndef KITTY_IPP_BRIDGE_DITHER_ATKINSON
+#define KITTY_IPP_BRIDGE_DITHER_ATKINSON 1
 #endif
 
-#if CATBRIDGE_DITHER_ATKINSON != 0 && CATBRIDGE_DITHER_ATKINSON != 1
-#error "CATBRIDGE_DITHER_ATKINSON must be 0 or 1"
+#if KITTY_IPP_BRIDGE_DITHER_ATKINSON != 0 && KITTY_IPP_BRIDGE_DITHER_ATKINSON != 1
+#error "KITTY_IPP_BRIDGE_DITHER_ATKINSON must be 0 or 1"
 #endif
 
 namespace raster
@@ -88,7 +88,7 @@ namespace raster
         std::vector<uint16_t> scaled_;  ///< Current output row before dithering
         std::vector<int16_t> errCur_;   ///< Error diffusion, current row (two guard pixels per side)
         std::vector<int16_t> errNext_;  ///< Error diffusion, next row
-#if CATBRIDGE_DITHER_ATKINSON
+#if KITTY_IPP_BRIDGE_DITHER_ATKINSON
         std::vector<int16_t> errAfterNext_; ///< Atkinson also diffuses two rows ahead
 #endif
         std::vector<uint8_t> packed_;   ///< Packed output row

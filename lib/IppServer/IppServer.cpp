@@ -22,8 +22,8 @@
 #include "SystemStats.h"
 #include "Watchdog.h"
 
-#ifndef CATBRIDGE_VERSION
-#define CATBRIDGE_VERSION "dev"
+#ifndef KITTY_IPP_BRIDGE_VERSION
+#define KITTY_IPP_BRIDGE_VERSION "dev"
 #endif
 
 static const char *TAG = "ipp";
@@ -433,7 +433,7 @@ std::string IppServer::printerUri(const std::string &printerId) const
 
 std::string IppServer::printerUuid(const std::string &printerId)
 {
-    // Stable, MAC derived RFC 4122 layout: "catbridge" prefix + printer id.
+    // Stable, MAC derived RFC 4122 layout: "kitty-ipp-bridge" prefix + printer id.
     return "63617462-7269-4467-8565-" + printerId;
 }
 
@@ -494,7 +494,7 @@ std::vector<MdnsPublisher::Entry> IppServer::mdnsEntries() const
         e.id = r.id;
         e.name = r.displayName();
         e.uuid = printerUuid(r.id);
-        e.model = "CatBridge Cat Printer";
+        e.model = "Kitty IPP Bridge Cat Printer";
         e.location = "BLE " + r.mac;
         entries.push_back(e);
     }
@@ -596,9 +596,9 @@ void IppServer::sendHttpResponse(HttpConnection &conn, int code, const char *rea
     char head[256];
     const auto n = snprintf(head, sizeof(head),
                            "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %u\r\nConnection: %s\r\n"
-                           "Server: CatBridge/%s IPP/2.0\r\n\r\n",
+                           "Server: KittyIPPBridge/%s IPP/2.0\r\n\r\n",
                            code, reason, contentType, static_cast<unsigned>(len), keepAlive ? "keep-alive" : "close",
-                           CATBRIDGE_VERSION);
+                           KITTY_IPP_BRIDGE_VERSION);
     if (n > 0 && conn.write(reinterpret_cast<const uint8_t *>(head), static_cast<size_t>(n)) && len)
         conn.write(body, len);
 }
@@ -635,8 +635,8 @@ void IppServer::handleClient(WiFiClient &client)
         {
             const auto host = hostWithoutPort(sanitizeHost(req.host.empty() ? settings_.hostname + ".local"
                                                                             : req.host));
-            const auto html = "<!doctype html><html><head><title>CatBridge</title></head><body>"
-                                     "<h1>CatBridge IPP endpoint</h1><p>Manage printers at <a href=\"http://" +
+            const auto html = "<!doctype html><html><head><title>Kitty IPP Bridge</title></head><body>"
+                                     "<h1>Kitty IPP Bridge IPP endpoint</h1><p>Manage printers at <a href=\"http://" +
                                      host + "/\">http://" + host + "/</a></p></body></html>";
             const auto head = req.method == "HEAD";
             sendHttpResponse(conn, 200, "OK", "text/html", reinterpret_cast<const uint8_t *>(html.data()),
@@ -903,17 +903,17 @@ void IppServer::opGetPrinterAttributes(const ipp::Request &req, const PrinterRec
     if (want("printer-location"))
         w.text("printer-location", "BLE " + printer.mac);
     if (want("printer-make-and-model"))
-        w.text("printer-make-and-model", "CatBridge Cat Printer (" + profile->profileName + ")");
+        w.text("printer-make-and-model", "Kitty IPP Bridge Cat Printer (" + profile->profileName + ")");
     if (want("printer-device-id"))
-        w.text("printer-device-id", "MFG:CatBridge;MDL:Cat Printer;CMD:PWGRaster,URF;CLS:PRINTER;");
+        w.text("printer-device-id", "MFG:Kitty IPP Bridge;MDL:Cat Printer;CMD:PWGRaster,URF;CLS:PRINTER;");
     if (want("printer-uuid"))
         w.uri("printer-uuid", "urn:uuid:" + printerUuid(printer.id));
     if (want("printer-more-info"))
         w.uri("printer-more-info", "http://" + host + "/");
     if (want("printer-firmware-name"))
-        w.name("printer-firmware-name", "CatBridge");
+        w.name("printer-firmware-name", "Kitty IPP Bridge");
     if (want("printer-firmware-string-version"))
-        w.text("printer-firmware-string-version", CATBRIDGE_VERSION);
+        w.text("printer-firmware-string-version", KITTY_IPP_BRIDGE_VERSION);
     if (want("printer-kind"))
         w.keywords("printer-kind", {"receipt", "roll"});
 

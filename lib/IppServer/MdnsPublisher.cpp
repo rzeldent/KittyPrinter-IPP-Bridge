@@ -27,7 +27,7 @@ bool MdnsPublisher::begin(const std::string &hostname, uint16_t ippPort, uint16_
         running_ = false;
         return false;
     }
-    MDNS.setInstanceName("CatBridge");
+    MDNS.setInstanceName("Kitty IPP Bridge");
     MDNS.addService("http", "tcp", httpPort_);
     MDNS.addServiceTxt("http", "tcp", "path", "/");
     running_ = true;

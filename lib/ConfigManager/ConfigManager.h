@@ -38,8 +38,8 @@ struct NetworkConfig
 {
     std::string ssid;               ///< Station SSID; empty = start setup access point
     std::string password;           ///< Station password
-    std::string hostname = "catbridge"; ///< mDNS host name (catbridge.local)
-    std::string apPassword = "catbridge"; ///< WPA2 password of the setup AP (>= 8 chars)
+    std::string hostname = "kitty-ipp-bridge"; ///< mDNS host name (kitty-ipp-bridge.local)
+    std::string apPassword = "kitty-ipp-bridge"; ///< WPA2 password of the setup AP (>= 8 chars)
 };
 
 /** Behavioural settings of the bridge. */

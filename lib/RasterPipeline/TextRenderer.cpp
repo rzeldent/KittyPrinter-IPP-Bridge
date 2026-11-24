@@ -215,7 +215,7 @@ namespace raster
     {
         MonoBitmap bmp(width);
         TextRenderer::drawRule(bmp, 3);
-        TextRenderer::drawText(bmp, "CATBRIDGE TEST PAGE", 3);
+        TextRenderer::drawText(bmp, "KITTY IPP BRIDGE TEST PAGE", 3);
         TextRenderer::drawRule(bmp, 3);
         bmp.appendBlank(6);
         for (const auto &l : lines)

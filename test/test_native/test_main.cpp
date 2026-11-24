@@ -169,7 +169,7 @@ static std::vector<uint8_t> buildPrintJobRequest()
     w.group(ipp::TAG_OPERATION);
     w.charset("attributes-charset", "utf-8");
     w.language("attributes-natural-language", "en");
-    w.uri("printer-uri", "ipp://catbridge.local/ipp/aabbccddeeff");
+    w.uri("printer-uri", "ipp://kitty-ipp-bridge.local/ipp/aabbccddeeff");
     w.name("requesting-user-name", "alice");
     w.mimeType("document-format", "application/pwg-raster");
     w.group(ipp::TAG_JOB);
@@ -495,7 +495,7 @@ static void test_rasterizer_dither_reference_and_reset()
         {100, 100, 100, 100, 100, 100, 100, 100},
         {140, 140, 140, 140, 140, 140, 140, 140},
     };
-#if CATBRIDGE_DITHER_ATKINSON
+#if KITTY_IPP_BRIDGE_DITHER_ATKINSON
     const uint8_t expected[] = {0xE0, 0x0F, 0xF6, 0x10};
 #else
     const uint8_t expected[] = {0xD0, 0x0F, 0xF5, 0x0A};
@@ -519,7 +519,7 @@ static void test_rasterizer_dither_reference_and_reset()
 static void test_rasterizer_dither_narrow_and_threshold()
 {
     const uint8_t gray[] = {100, 0, 118};
-#if CATBRIDGE_DITHER_ATKINSON
+#if KITTY_IPP_BRIDGE_DITHER_ATKINSON
     const uint8_t expected[] = {0x80, 0x80, 0x00};
 #else
     const uint8_t expected[] = {0x80, 0x80, 0x80};

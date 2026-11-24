@@ -133,7 +133,7 @@ failure. Native test success also does not rule out a hardware-specific issue.
 A controlled comparison needs the same input, app, printer state, and
 comparable scan/connection timing.
 
-The firmware build currently selects `CATBRIDGE_DITHER_ATKINSON=0` in
+The firmware build currently selects `KITTY_IPP_BRIDGE_DITHER_ATKINSON=0` in
 [platformio.ini](platformio.ini), retaining Floyd-Steinberg. Setting it to `1`
 selects Atkinson. The raster library defaults to Atkinson when no build
 override is supplied.

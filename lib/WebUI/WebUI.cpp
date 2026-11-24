@@ -28,8 +28,8 @@
 extern const uint8_t kIndexHtmlStart[] asm("_binary_html_index_html_start");
 extern const uint8_t kIndexHtmlEnd[] asm("_binary_html_index_html_end");
 
-#ifndef CATBRIDGE_VERSION
-#define CATBRIDGE_VERSION "dev"
+#ifndef KITTY_IPP_BRIDGE_VERSION
+#define KITTY_IPP_BRIDGE_VERSION "dev"
 #endif
 
 static const char *TAG = "web";
@@ -501,7 +501,7 @@ JsonDocument WebUI::statsDocument() const
 
     // Extended numeric details.
     auto d = doc["details"].to<JsonObject>();
-    d["firmware"] = CATBRIDGE_VERSION;
+    d["firmware"] = KITTY_IPP_BRIDGE_VERSION;
     d["uptimeSeconds"] = uptime;
     d["heapFree"] = ESP.getFreeHeap();
     d["heapMinFree"] = ESP.getMinFreeHeap();
